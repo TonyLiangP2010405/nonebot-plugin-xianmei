@@ -1,7 +1,5 @@
 from pathlib import Path
 
-import pytest
-
 from nonebot_plugin_xianmei.config import GroupState, Store
 
 
