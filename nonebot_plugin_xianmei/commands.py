@@ -1,3 +1,5 @@
+import re
+
 from nonebot import on_command
 from nonebot.adapters.onebot.v11 import GroupMessageEvent, Message, MessageEvent
 from nonebot.params import CommandArg
@@ -9,7 +11,7 @@ from .trigger import status_text
 
 
 def parse_qq(text: str) -> str | None:
-    return text if text.isdigit() and 5 <= len(text) <= 11 else None
+    return text if re.fullmatch(r"[0-9]{5,11}", text) else None
 
 
 def parse_bounded_int(text: str, lo: int, hi: int) -> int | None:

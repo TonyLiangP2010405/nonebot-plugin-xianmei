@@ -40,9 +40,14 @@ class Store:
             raw = json.loads(self.path.read_text(encoding="utf-8"))
         except (json.JSONDecodeError, OSError):
             return
+        if not isinstance(raw, dict):
+            return
         for group_id, data in raw.items():
             if isinstance(data, dict):
-                self._states[group_id] = GroupState(**data)
+                try:
+                    self._states[group_id] = GroupState(**data)
+                except TypeError:
+                    continue
 
     def _save(self) -> None:
         self.path.parent.mkdir(parents=True, exist_ok=True)

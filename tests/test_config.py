@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 
 from nonebot_plugin_xianmei.config import GroupState, Store
@@ -54,3 +55,19 @@ def test_corrupted_file_starts_empty(tmp_path: Path):
     path.write_text("{not valid json", encoding="utf-8")
     store = Store(path)
     assert store.get("12345") == GroupState()
+
+
+def test_non_object_json_starts_empty(tmp_path: Path):
+    path = tmp_path / "state.json"
+    path.write_text("[]", encoding="utf-8")
+    store = Store(path)
+    assert store.get("12345") == GroupState()
+
+
+def test_unknown_key_entry_skipped(tmp_path: Path):
+    path = tmp_path / "state.json"
+    payload = {"12345": {"owner_qq": "888", "bogus_key": 1}, "99999": {"owner_qq": "777"}}
+    path.write_text(json.dumps(payload), encoding="utf-8")
+    store = Store(path)
+    assert store.get("12345") == GroupState()
+    assert store.get("99999").owner_qq == "777"

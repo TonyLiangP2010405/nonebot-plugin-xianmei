@@ -17,6 +17,10 @@ def test_parse_qq_rejects_junk():
     assert parse_qq("") is None
 
 
+def test_parse_qq_rejects_fullwidth_digits():
+    assert parse_qq("６８６７９５５") is None
+
+
 def test_parse_bounded_int():
     assert parse_bounded_int("5", 1, 100) == 5
     assert parse_bounded_int("0", 1, 100) is None
