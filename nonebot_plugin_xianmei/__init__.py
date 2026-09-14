@@ -35,4 +35,7 @@ async def _(event: GroupMessageEvent):
         return
     store.put(group_id, new_state)
     await store.save()
+    name = event.sender.card or event.sender.nickname or "桃神"
+    await flatter.send(f"🔔 检测到 {name} 出现！")
+    await flatter.send("🫡 开始献媚！")
     await flatter.finish(get_library().pick())
