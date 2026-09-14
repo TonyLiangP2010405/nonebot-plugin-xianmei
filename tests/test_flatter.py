@@ -122,3 +122,20 @@ async def test_announce_name_fallback(app: App, store):
         ctx.should_call_send(event, "🫡 开始献媚！", result=True)
         ctx.should_call_send(event, "固定彩虹屁", result=True)
         ctx.should_finished(flatter)
+
+
+async def test_announce_name_from_nickname(app: App, store):
+    from nonebot.adapters.onebot.v11 import Bot
+
+    from nonebot_plugin_xianmei import flatter
+    from nonebot_plugin_xianmei.config import GroupState
+
+    store.put("12345", GroupState(owner_qq="888"))
+    async with app.test_matcher(flatter) as ctx:
+        bot = ctx.create_bot(base=Bot, self_id="100001")
+        event = make_group_event(888, "大家晚上好", card="", nickname="小桃桃")
+        ctx.receive_event(bot, event)
+        ctx.should_call_send(event, "🔔 检测到 小桃桃 出现！", result=True)
+        ctx.should_call_send(event, "🫡 开始献媚！", result=True)
+        ctx.should_call_send(event, "固定彩虹屁", result=True)
+        ctx.should_finished(flatter)

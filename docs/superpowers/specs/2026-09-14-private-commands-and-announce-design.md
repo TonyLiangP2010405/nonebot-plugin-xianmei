@@ -25,7 +25,7 @@
 
 ### 参数解析规则
 
-每个命令统一走一个解析辅助：`resolve_group_and_arg(event, plain_text) -> tuple[str | None, str]`：
+每个命令统一走一个解析辅助：`split_group_arg(plain) -> tuple[str | None, str]`（群聊直通由各 handler 内联处理，辅助函数只做私聊参数拆分）：
 - 群聊消息 → (str(event.group_id), plain_text)
 - 私聊消息 → 第一个 token 为群号；取不到/非数字 → 用法提示并终止；剩余 token 为命令参数
 
@@ -41,7 +41,7 @@
 
 ## 4. 测试
 
-- `resolve_group_and_arg` 单测：群聊直通；私聊带群号；私聊缺群号/非法群号
+- `split_group_arg` 单测：群聊直通；私聊带群号；私聊缺群号/非法群号
 - 命令集成：私聊 `/献媚设置群主 123456 6867955`（superuser）→ 目标群配置生效；私聊非 superuser 被拒
 - 播报集成：群主消息触发 → 断言三条消息按顺序发送（检测到→开始献媚→彩虹屁）
 - 现有 38 个测试保持绿色（群聊用法不变）

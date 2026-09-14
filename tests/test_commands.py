@@ -211,7 +211,7 @@ async def test_set_owner_private_non_superuser(app: App, store):
         event = make_private_event(555, "/献媚设置群主 123456 6867955")
         ctx.receive_event(bot, event)
         ctx.should_not_pass_permission(matcher_set_owner)
-    assert store.get("123456").owner_qq is None
+    assert "123456" not in store._states
 
 
 async def test_toggle_private_invalid_group(app: App, store):
@@ -226,3 +226,18 @@ async def test_toggle_private_invalid_group(app: App, store):
         ctx.should_pass_permission(matcher_toggle)
         ctx.should_call_send(event, "用法：献媚开关 <群号>（私聊时必须带群号）", result=True)
         ctx.should_finished(matcher_toggle)
+
+
+async def test_set_owner_private_missing_qq_arg(app: App, store):
+    from nonebot.adapters.onebot.v11 import Bot
+
+    from nonebot_plugin_xianmei.commands import matcher_set_owner
+
+    async with app.test_matcher(matcher_set_owner) as ctx:
+        bot = ctx.create_bot(base=Bot, self_id="100001")
+        event = make_private_event(999, "/献媚设置群主 6867955")
+        ctx.receive_event(bot, event)
+        ctx.should_pass_permission(matcher_set_owner)
+        ctx.should_call_send(event, "用法：献媚设置群主 <群号> <QQ号>（私聊时必须带群号）", result=True)
+        ctx.should_finished(matcher_set_owner)
+    assert "6867955" not in store._states

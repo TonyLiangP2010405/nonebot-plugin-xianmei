@@ -29,6 +29,7 @@ pip install nonebot-plugin-xianmei
 | `/献媚预览` | superuser | 群聊 | 随机预览一条献媚文案 |
 
 > 命令需要 NoneBot 配置 `command_start=["/"]`（默认即为 `/`）。
+>
 > 群聊中发送时作用于当前群；**私聊发送时第一个参数必须是群号**，如 `/献媚设置群主 123456 6867955`、`/献媚状态 123456`。
 
 数据存储于运行目录 `data/xianmei/state.json`（每群独立，自动生成）。

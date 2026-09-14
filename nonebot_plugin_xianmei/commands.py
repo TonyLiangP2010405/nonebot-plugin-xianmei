@@ -44,7 +44,7 @@ async def _set_owner(event: MessageEvent, args: Message = CommandArg()):
         group_id, arg = str(event.group_id), plain
     else:
         group_id, arg = split_group_arg(plain)
-        if group_id is None:
+        if group_id is None or not arg:
             await matcher_set_owner.finish("用法：献媚设置群主 <群号> <QQ号>（私聊时必须带群号）")
     qq = parse_qq(arg)
     if qq is None:
