@@ -64,7 +64,7 @@ async def _set_limit(event: MessageEvent, args: Message = CommandArg()):
         group_id, arg = str(event.group_id), plain
     else:
         group_id, arg = split_group_arg(plain)
-        if group_id is None:
+        if group_id is None or not arg:
             await matcher_set_limit.finish("用法：献媚设置上限 <群号> <条数>（私聊时必须带群号）")
     n = parse_bounded_int(arg, 1, 100)
     if n is None:
@@ -84,7 +84,7 @@ async def _set_cooldown(event: MessageEvent, args: Message = CommandArg()):
         group_id, arg = str(event.group_id), plain
     else:
         group_id, arg = split_group_arg(plain)
-        if group_id is None:
+        if group_id is None or not arg:
             await matcher_set_cooldown.finish("用法：献媚设置冷却 <群号> <分钟>（私聊时必须带群号）")
     n = parse_bounded_int(arg, 1, 1440)
     if n is None:

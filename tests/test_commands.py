@@ -241,3 +241,33 @@ async def test_set_owner_private_missing_qq_arg(app: App, store):
         ctx.should_call_send(event, "用法：献媚设置群主 <群号> <QQ号>（私聊时必须带群号）", result=True)
         ctx.should_finished(matcher_set_owner)
     assert "6867955" not in store._states
+
+
+async def test_set_limit_private_missing_count_arg(app: App, store):
+    from nonebot.adapters.onebot.v11 import Bot
+
+    from nonebot_plugin_xianmei.commands import matcher_set_limit
+
+    async with app.test_matcher(matcher_set_limit) as ctx:
+        bot = ctx.create_bot(base=Bot, self_id="100001")
+        event = make_private_event(999, "/献媚设置上限 3")
+        ctx.receive_event(bot, event)
+        ctx.should_pass_permission(matcher_set_limit)
+        ctx.should_call_send(event, "用法：献媚设置上限 <群号> <条数>（私聊时必须带群号）", result=True)
+        ctx.should_finished(matcher_set_limit)
+    assert "3" not in store._states
+
+
+async def test_set_cooldown_private_missing_minutes_arg(app: App, store):
+    from nonebot.adapters.onebot.v11 import Bot
+
+    from nonebot_plugin_xianmei.commands import matcher_set_cooldown
+
+    async with app.test_matcher(matcher_set_cooldown) as ctx:
+        bot = ctx.create_bot(base=Bot, self_id="100001")
+        event = make_private_event(999, "/献媚设置冷却 30")
+        ctx.receive_event(bot, event)
+        ctx.should_pass_permission(matcher_set_cooldown)
+        ctx.should_call_send(event, "用法：献媚设置冷却 <群号> <分钟>（私聊时必须带群号）", result=True)
+        ctx.should_finished(matcher_set_cooldown)
+    assert "30" not in store._states
