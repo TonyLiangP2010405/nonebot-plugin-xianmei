@@ -11,3 +11,28 @@ __plugin_meta__ = PluginMetadata(
     homepage="https://github.com/TonyLiangP2010405/nonebot-plugin-xianmei",
     supported_adapters={"~onebot.v11"},
 )
+
+from datetime import datetime
+
+from nonebot import on_message
+from nonebot.adapters.onebot.v11 import GroupMessageEvent
+
+from . import commands as _commands  # noqa: F401  # 注册命令 matcher
+from .config import get_store
+from .quips import get_library
+from .trigger import decide
+
+flatter = on_message(priority=100, block=False)
+
+
+@flatter.handle()
+async def _(event: GroupMessageEvent):
+    store = get_store()
+    group_id = str(event.group_id)
+    state = store.get(group_id)
+    should, new_state = decide(state, str(event.user_id), datetime.now())
+    if not should:
+        return
+    store.put(group_id, new_state)
+    await store.save()
+    await flatter.finish(get_library().pick())
