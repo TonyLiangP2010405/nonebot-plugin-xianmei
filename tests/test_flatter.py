@@ -36,6 +36,8 @@ async def test_owner_speaking_gets_flattered(app: App, store):
         ctx.receive_event(bot, event)
         ctx.should_pass_rule(flatter)
         ctx.should_pass_permission(flatter)
+        ctx.should_call_send(event, "🔔 检测到 五冠王桃神 出现！", result=True)
+        ctx.should_call_send(event, "🫡 开始献媚！", result=True)
         ctx.should_call_send(event, "固定彩虹屁", result=True)
         ctx.should_finished(flatter)
     state = store.get("12345")
@@ -54,6 +56,8 @@ async def test_cooldown_blocks_second_message(app: App, store):
         bot = ctx.create_bot(base=Bot, self_id="100001")
         event1 = make_group_event(888, "第一句")
         ctx.receive_event(bot, event1)
+        ctx.should_call_send(event1, "🔔 检测到 五冠王桃神 出现！", result=True)
+        ctx.should_call_send(event1, "🫡 开始献媚！", result=True)
         ctx.should_call_send(event1, "固定彩虹屁", result=True)
         ctx.should_finished(flatter)
         event2 = make_group_event(888, "第二句")
@@ -101,3 +105,37 @@ async def test_daily_cap_blocks(app: App, store):
         event = make_group_event(888, "大家晚上好")
         ctx.receive_event(bot, event)
     assert store.get("12345").today_count == 5
+
+
+async def test_announce_name_fallback(app: App, store):
+    from nonebot.adapters.onebot.v11 import Bot
+
+    from nonebot_plugin_xianmei import flatter
+    from nonebot_plugin_xianmei.config import GroupState
+
+    store.put("12345", GroupState(owner_qq="888"))
+    async with app.test_matcher(flatter) as ctx:
+        bot = ctx.create_bot(base=Bot, self_id="100001")
+        event = make_group_event(888, "大家晚上好", card="", nickname="")
+        ctx.receive_event(bot, event)
+        ctx.should_call_send(event, "🔔 检测到 桃神 出现！", result=True)
+        ctx.should_call_send(event, "🫡 开始献媚！", result=True)
+        ctx.should_call_send(event, "固定彩虹屁", result=True)
+        ctx.should_finished(flatter)
+
+
+async def test_announce_name_from_nickname(app: App, store):
+    from nonebot.adapters.onebot.v11 import Bot
+
+    from nonebot_plugin_xianmei import flatter
+    from nonebot_plugin_xianmei.config import GroupState
+
+    store.put("12345", GroupState(owner_qq="888"))
+    async with app.test_matcher(flatter) as ctx:
+        bot = ctx.create_bot(base=Bot, self_id="100001")
+        event = make_group_event(888, "大家晚上好", card="", nickname="小桃桃")
+        ctx.receive_event(bot, event)
+        ctx.should_call_send(event, "🔔 检测到 小桃桃 出现！", result=True)
+        ctx.should_call_send(event, "🫡 开始献媚！", result=True)
+        ctx.should_call_send(event, "固定彩虹屁", result=True)
+        ctx.should_finished(flatter)
