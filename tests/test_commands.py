@@ -3,7 +3,7 @@ from pathlib import Path
 import pytest
 from nonebug import App
 
-from nonebot_plugin_xianmei.commands import parse_bounded_int, parse_qq
+from nonebot_plugin_xianmei.commands import parse_bounded_int, parse_qq, split_group_arg
 
 
 def test_parse_qq_valid():
@@ -28,7 +28,21 @@ def test_parse_bounded_int():
     assert parse_bounded_int("x", 1, 100) is None
 
 
-def make_group_event(user_id: int, message: str):
+def test_split_group_arg_normal():
+    assert split_group_arg("123456 6867955") == ("123456", "6867955")
+
+
+def test_split_group_arg_no_arg():
+    assert split_group_arg("123456") == ("123456", "")
+
+
+def test_split_group_arg_invalid():
+    assert split_group_arg("abc 123") == (None, "")
+    assert split_group_arg("") == (None, "")
+    assert split_group_arg("１２３４５６ 888") == (None, "")
+
+
+def make_group_event(user_id: int, message: str, card: str = "五冠王桃神", nickname: str = "桃神"):
     from nonebot.adapters.onebot.v11 import GroupMessageEvent, Message
 
     return GroupMessageEvent(
@@ -45,8 +59,8 @@ def make_group_event(user_id: int, message: str):
         font=0,
         sender={
             "user_id": user_id,
-            "nickname": "n",
-            "card": "",
+            "nickname": nickname,
+            "card": card,
             "sex": "unknown",
             "age": 0,
             "area": "",
@@ -54,6 +68,24 @@ def make_group_event(user_id: int, message: str):
             "role": "member",
             "title": "",
         },
+    )
+
+
+def make_private_event(user_id: int, message: str):
+    from nonebot.adapters.onebot.v11 import Message, PrivateMessageEvent
+
+    return PrivateMessageEvent(
+        time=0,
+        self_id=100001,
+        post_type="message",
+        message_type="private",
+        sub_type="friend",
+        message_id=1,
+        user_id=user_id,
+        message=Message(message),
+        raw_message=message,
+        font=0,
+        sender={"user_id": user_id, "nickname": "n", "sex": "unknown", "age": 0},
     )
 
 
@@ -152,3 +184,45 @@ async def test_preview(app: App, library):
         ctx.should_pass_permission(matcher_preview)
         ctx.should_call_send(event, "🔮 献媚预览：固定彩虹屁", result=True)
         ctx.should_finished(matcher_preview)
+
+
+async def test_set_owner_private_superuser(app: App, store):
+    from nonebot.adapters.onebot.v11 import Bot
+
+    from nonebot_plugin_xianmei.commands import matcher_set_owner
+
+    async with app.test_matcher(matcher_set_owner) as ctx:
+        bot = ctx.create_bot(base=Bot, self_id="100001")
+        event = make_private_event(999, "/献媚设置群主 123456 6867955")
+        ctx.receive_event(bot, event)
+        ctx.should_pass_permission(matcher_set_owner)
+        ctx.should_call_send(event, "✅ 已绑定本群桃神：6867955\n桃神出现时将自动献媚~", result=True)
+        ctx.should_finished(matcher_set_owner)
+    assert store.get("123456").owner_qq == "6867955"
+
+
+async def test_set_owner_private_non_superuser(app: App, store):
+    from nonebot.adapters.onebot.v11 import Bot
+
+    from nonebot_plugin_xianmei.commands import matcher_set_owner
+
+    async with app.test_matcher(matcher_set_owner) as ctx:
+        bot = ctx.create_bot(base=Bot, self_id="100001")
+        event = make_private_event(555, "/献媚设置群主 123456 6867955")
+        ctx.receive_event(bot, event)
+        ctx.should_not_pass_permission(matcher_set_owner)
+    assert store.get("123456").owner_qq is None
+
+
+async def test_toggle_private_invalid_group(app: App, store):
+    from nonebot.adapters.onebot.v11 import Bot
+
+    from nonebot_plugin_xianmei.commands import matcher_toggle
+
+    async with app.test_matcher(matcher_toggle) as ctx:
+        bot = ctx.create_bot(base=Bot, self_id="100001")
+        event = make_private_event(999, "/献媚开关 abc")
+        ctx.receive_event(bot, event)
+        ctx.should_pass_permission(matcher_toggle)
+        ctx.should_call_send(event, "用法：献媚开关 <群号>（私聊时必须带群号）", result=True)
+        ctx.should_finished(matcher_toggle)
